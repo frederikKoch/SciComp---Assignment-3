@@ -29,21 +29,10 @@ class Parameters {
     size_t  nper;           // how many step s between snapshots
 };
 
-int main(int argc, char* argv[])
-{
-    // Check command line argument
-    if (argc != 2) {
-        std::cerr << "Error: wave1d needs one parameter file argument.\n";
-        return 1;
-    }
-    if (not std::filesystem::exists(argv[1])) {
-        std::cerr << "Error: parameter file '" << argv[1] << "' not found.\n";
-        return 2;
-    }
-    
+Parameters readFile(std::string filename){
     // Read the values from the parameter file specified on the command line
     Parameters    param;
-    std::ifstream infile(argv[1]);
+    std::ifstream infile(filename);
     // The following line causes 'infile' to throw exceptions for errors.
     // (instead of the default behavior of setting an internal flag and having the program continue.)
     infile.exceptions(std::ifstream::failbit|std::ifstream::badbit);  
@@ -59,8 +48,8 @@ int main(int argc, char* argv[])
         infile.close();
     }
     catch (std::ifstream::failure& e) {
-        std::cerr << "Error while reading file '" << argv[1] << "'.\n";
-        return 3;
+        std::cerr << "Error while reading file '" << filename << "'.\n";
+        std::exit(1); 
     }
 
     // Check input sanity, quit if there are errors
@@ -85,16 +74,36 @@ int main(int argc, char* argv[])
         correctinput = true;
     }
     if (not correctinput) {
-        std::cerr << "Parameter value error in file '" << argv[1] << "'\n";
-        return 4;
+        std::cerr << "Parameter value error in file '" << filename << "'\n";
+        std::exit(0);
     }
-    
+ 
+    return param;
+};
+
+void deriveParameters(Parameters &param){
     // Derived parameters 
     param.ngrid  = static_cast<size_t>((param.x2-param.x1)/param.dx);// number of x points (rounded down)
     param.dt     = 0.5*param.dx/param.c;                             // time step size
     param.nsteps = static_cast<size_t>(param.runtime/param.dt);      // number of steps to reach runtime (rounded down)
     param.nper   = static_cast<size_t>(param.outtime/param.dt);      // how many steps between snapshots (rounded down)
+};
 
+int main(int argc, char* argv[])
+{
+    // Check command line argument
+    if (argc != 2) {
+        std::cerr << "Error: wave1d needs one parameter file argument.\n";
+        return 1;
+    }
+    if (not std::filesystem::exists(argv[1])) {
+        std::cerr << "Error: parameter file '" << argv[1] << "' not found.\n";
+        return 2;
+    }
+
+    Parameters param = readFile(argv[1]);
+    deriveParameters(param);   
+   
     // Open output file
     std::ofstream fout(param.outfilename);
     
