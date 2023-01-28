@@ -130,6 +130,28 @@ std::vector<double> initializeRho(Parameters param, std::vector<double> x){
     return rho;
 };
 
+void printX(std::ofstream &fout, std::vector<double> rho, std::vector<double> x, Parameters param){
+  for (size_t i = 0; i < param.ngrid; i++)  {
+        fout << x[i] << " " << rho[i] << "\n";
+    }
+};
+
+std::vector<double> timeStep(std::vector<double> &rho, std::vector<double> &rho_prev, Parameters param){
+        std::vector<double> rho_next(param.ngrid, 0);   
+
+        // Set zero Dirichlet boundary conditions
+        rho[0] = 0.0;
+        rho[param.ngrid-1] = 0.0;
+
+        // Evolve inner region over a time dt using a leap-frog variant
+        for (size_t i = 1; i <= param.ngrid-2; i++) {
+            double laplacian = pow(param.c/param.dx,2)*(rho[i+1] + rho[i-1] - 2*rho[i]);
+            double friction = (rho[i] - rho_prev[i])/param.tau;
+            rho_next[i] = 2*rho[i] - rho_prev[i] + param.dt*(laplacian*param.dt-friction);
+        }
+        return rho_next;
+}
+
 int main(int argc, char* argv[])
 {
     // Check command line argument
@@ -150,38 +172,18 @@ int main(int argc, char* argv[])
     writeParameters(param, fout);
     
     // Define and allocate arrays
-    //std::vector<double> rho_prev (param.ngrid, 0); // time step t+1
-    //std::vector<double> rho (param.ngrid, 0); // time step t+1
-    std::vector<double> rho_next (param.ngrid, 0); // time step t+1
-
-    //double rho [param.ngrid]; // time step t+1
-    //double rho_next [param.ngrid]; // time step t+1
-    //double x [param.ngrid]; // x values
 
     std::vector<double> x = initializeX(param);
     std::vector<double> rho = initializeRho(param, x);
     std::vector<double> rho_prev (rho);
    
-    // Initialize wave with a triangle shape from xstart to xfinish
     // Output initial wave to file
     fout << "\n#t = " << 0.0 << "\n";
-    for (size_t i = 0; i < param.ngrid; i++)  {
-        fout << x[i] << " " << rho[i] << "\n";
-    }
-
+    printX(fout, rho, x, param);
     // Take timesteps
     for (size_t s = 0; s < param.nsteps; s++) {
 
-        // Set zero Dirichlet boundary conditions
-        rho[0] = 0.0;
-        rho[param.ngrid-1] = 0.0;
-
-        // Evolve inner region over a time dt using a leap-frog variant
-        for (size_t i = 1; i <= param.ngrid-2; i++) {
-            double laplacian = pow(param.c/param.dx,2)*(rho[i+1] + rho[i-1] - 2*rho[i]);
-            double friction = (rho[i] - rho_prev[i])/param.tau;
-            rho_next[i] = 2*rho[i] - rho_prev[i] + param.dt*(laplacian*param.dt-friction);
-        }
+        std::vector<double> rho_next = timeStep(rho, rho_prev, param);
 
         // Update arrays such that t+1 becomes the new t etc.
         std::swap(rho_prev, rho);
@@ -190,9 +192,7 @@ int main(int argc, char* argv[])
         // Output wave to file
         if ((s+1)%param.nper == 0) {
             fout << "\n\n# t = " << static_cast<double>(s+1)*param.dt << "\n";
-            for (size_t i = 0; i < param.ngrid; i++) {
-                fout << x[i] << " " << rho[i] << "\n";
-            }
+            printX(fout, rho, x, param);
         }
     }
 
