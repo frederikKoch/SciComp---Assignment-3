@@ -122,9 +122,9 @@ std::vector<double> initializeRho(Parameters param, std::vector<double> x){
     double xfinish = 0.75*(param.x2-param.x1) + param.x1;
     for (size_t i = 0; i < param.ngrid; i++) {
         if (x[i] < xstart or x[i] > xfinish) {
-            rho.push_back(0.0);
+            rho[i] = 0.0;
         } else {
-            rho.push_back( 0.25 - fabs(x[i]-xmid)/(param.x2-param.x1));
+            rho[i] =  0.25 - fabs(x[i]-xmid)/(param.x2-param.x1);
         }
     }
     return rho;
