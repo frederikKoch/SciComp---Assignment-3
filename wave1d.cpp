@@ -105,7 +105,7 @@ void writeParameters(Parameters &param, std::ofstream &fout){
     fout << "#nper  (derived) " << param.nper   << "\n";
 };
 
-void initializeX(std::unique_ptr<double> x[], Parameters param){
+void initializeX(double x[], Parameters param){
     // Initialize array of x values 
     for (size_t i = 0; i < param.ngrid; i++) {
         x[i] = param.x1 + (static_cast<double>(i)*(param.x2-param.x1))/static_cast<double>(param.ngrid-1);
@@ -135,9 +135,10 @@ int main(int argc, char* argv[])
     auto rho_prev = std::make_unique<double[]>(param.ngrid); // time step t-1
     auto rho      = std::make_unique<double[]>(param.ngrid); // time step t
     auto rho_next = std::make_unique<double[]>(param.ngrid); // time step t+1
-    auto x        = std::make_unique<double[]>(param.ngrid); // x values
+    double x [param.ngrid]; // x values
 
     initializeX(x, param);
+    std::cout<<x[0]<<" "<< x[1];
    
     // Initialize wave with a triangle shape from xstart to xfinish
     double xstart = 0.25*(param.x2-param.x1) + param.x1;
