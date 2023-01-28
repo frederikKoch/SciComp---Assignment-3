@@ -10,6 +10,7 @@
 #include <string>
 #include <filesystem>
 #include <cmath>
+#include <vector>
 
 // create a type that will hold a collection of parameters
 class Parameters {
@@ -105,11 +106,28 @@ void writeParameters(Parameters &param, std::ofstream &fout){
     fout << "#nper  (derived) " << param.nper   << "\n";
 };
 
-void initializeX(double x[], Parameters param){
+std::vector<double> initializeX(Parameters param){
     // Initialize array of x values 
+    std::vector<double> x (param.ngrid, 0); 
     for (size_t i = 0; i < param.ngrid; i++) {
-        x[i] = param.x1 + (static_cast<double>(i)*(param.x2-param.x1))/static_cast<double>(param.ngrid-1);
+        x[i] = (param.x1 + (static_cast<double>(i)*(param.x2-param.x1))/static_cast<double>(param.ngrid-1));
     } 
+    return x;
+};
+
+std::vector<double> initializeRho(Parameters param, std::vector<double> x){
+    std::vector<double> rho (param.ngrid, 0);
+    double xstart = 0.25*(param.x2-param.x1) + param.x1;
+    double xmid = 0.5*(param.x2+param.x1);
+    double xfinish = 0.75*(param.x2-param.x1) + param.x1;
+    for (size_t i = 0; i < param.ngrid; i++) {
+        if (x[i] < xstart or x[i] > xfinish) {
+            rho.push_back(0.0);
+        } else {
+            rho.push_back( 0.25 - fabs(x[i]-xmid)/(param.x2-param.x1));
+        }
+    }
+    return rho;
 };
 
 int main(int argc, char* argv[])
@@ -132,26 +150,19 @@ int main(int argc, char* argv[])
     writeParameters(param, fout);
     
     // Define and allocate arrays
-    double rho_prev [param.ngrid]; // time step t+1
-    double rho [param.ngrid]; // time step t+1
-    double rho_next [param.ngrid]; // time step t+1
-    double x [param.ngrid]; // x values
+    //std::vector<double> rho_prev (param.ngrid, 0); // time step t+1
+    //std::vector<double> rho (param.ngrid, 0); // time step t+1
+    std::vector<double> rho_next (param.ngrid, 0); // time step t+1
 
-    initializeX(x, param);
+    //double rho [param.ngrid]; // time step t+1
+    //double rho_next [param.ngrid]; // time step t+1
+    //double x [param.ngrid]; // x values
+
+    std::vector<double> x = initializeX(param);
+    std::vector<double> rho = initializeRho(param, x);
+    std::vector<double> rho_prev (rho);
    
     // Initialize wave with a triangle shape from xstart to xfinish
-    double xstart = 0.25*(param.x2-param.x1) + param.x1;
-    double xmid = 0.5*(param.x2+param.x1);
-    double xfinish = 0.75*(param.x2-param.x1) + param.x1;
-    for (size_t i = 0; i < param.ngrid; i++) {
-        if (x[i] < xstart or x[i] > xfinish) {
-            rho[i] = 0.0;
-        } else {
-            rho[i] = 0.25 - fabs(x[i]-xmid)/(param.x2-param.x1);
-        }
-        rho_prev[i] = rho[i];
-    }
-
     // Output initial wave to file
     fout << "\n#t = " << 0.0 << "\n";
     for (size_t i = 0; i < param.ngrid; i++)  {
