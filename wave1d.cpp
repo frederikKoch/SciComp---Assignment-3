@@ -105,6 +105,13 @@ void writeParameters(Parameters &param, std::ofstream &fout){
     fout << "#nper  (derived) " << param.nper   << "\n";
 };
 
+void initializeX(std::unique_ptr<double> x[], Parameters param){
+    // Initialize array of x values 
+    for (size_t i = 0; i < param.ngrid; i++) {
+        x[i] = param.x1 + (static_cast<double>(i)*(param.x2-param.x1))/static_cast<double>(param.ngrid-1);
+    } 
+};
+
 int main(int argc, char* argv[])
 {
     // Check command line argument
@@ -130,11 +137,8 @@ int main(int argc, char* argv[])
     auto rho_next = std::make_unique<double[]>(param.ngrid); // time step t+1
     auto x        = std::make_unique<double[]>(param.ngrid); // x values
 
-    // Initialize array of x values 
-    for (size_t i = 0; i < param.ngrid; i++) {
-        x[i] = param.x1 + (static_cast<double>(i)*(param.x2-param.x1))/static_cast<double>(param.ngrid-1);
-    }
-    
+    initializeX(x, param);
+   
     // Initialize wave with a triangle shape from xstart to xfinish
     double xstart = 0.25*(param.x2-param.x1) + param.x1;
     double xmid = 0.5*(param.x2+param.x1);
