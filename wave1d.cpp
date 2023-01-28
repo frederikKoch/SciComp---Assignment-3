@@ -132,13 +132,12 @@ int main(int argc, char* argv[])
     writeParameters(param, fout);
     
     // Define and allocate arrays
-    auto rho_prev = std::make_unique<double[]>(param.ngrid); // time step t-1
-    auto rho      = std::make_unique<double[]>(param.ngrid); // time step t
-    auto rho_next = std::make_unique<double[]>(param.ngrid); // time step t+1
+    double rho_prev [param.ngrid]; // time step t+1
+    double rho [param.ngrid]; // time step t+1
+    double rho_next [param.ngrid]; // time step t+1
     double x [param.ngrid]; // x values
 
     initializeX(x, param);
-    std::cout<<x[0]<<" "<< x[1];
    
     // Initialize wave with a triangle shape from xstart to xfinish
     double xstart = 0.25*(param.x2-param.x1) + param.x1;
