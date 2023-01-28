@@ -8,7 +8,7 @@ all: wave1d
 wave1d: wave1d.o
 	$(CXX) $(LDFLAGS) -o wave1d wave1d.o
 
-wave1d.o: wave1d.cpp
+wave1d.o: wave1d.cpp wave1d.h
 	$(CXX) -c $(CXXFLAGS) -o wave1d.o wave1d.cpp
 
 run: wave1d
