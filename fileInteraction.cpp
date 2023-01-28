@@ -1,3 +1,5 @@
+//fileInteracition.cpp
+//Includes all function needed to write/read from files
 #include "wave1d.h"
 #include <vector>
 #include <iostream>
@@ -6,7 +8,7 @@
 #include <fstream>
 
 void writeParameters(Parameters &param, std::ofstream &fout){
-    // Report all the parameters in the output file (prepend # to facilitate post-processing, as e.g. gnuplot and numpy.loadtxt skip these)
+    //Each line writes one of the parameters given in the value or derived into another file
     fout << "#c        " << param.c       << "\n";
     fout << "#tau      " << param.tau     << "\n";
     fout << "#x1       " << param.x1      << "\n";
@@ -22,16 +24,19 @@ void writeParameters(Parameters &param, std::ofstream &fout){
 };
 
 void printX(std::ofstream &fout, std::vector<double> rho, std::vector<double> x, Parameters param){
-  for (size_t i = 0; i < param.ngrid; i++)  {
+    //Iterates through each line of x and prints x with the rho value at the same postion
+    for (size_t i = 0; i < param.ngrid; i++)  {
         fout << x[i] << " " << rho[i] << "\n";
     }
 };
 
 
 Parameters readFile(std::string filename){
-    // Read the values from the parameter file specified on the command line
     Parameters    param;
+
+    // Read the values from the parameter file specified on the command line
     std::ifstream infile(filename);
+
     // The following line causes 'infile' to throw exceptions for errors.
     // (instead of the default behavior of setting an internal flag and having the program continue.)
     infile.exceptions(std::ifstream::failbit|std::ifstream::badbit);  

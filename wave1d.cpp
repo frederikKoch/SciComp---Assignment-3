@@ -1,4 +1,3 @@
-//
 // wave1d.cc - Simulates a one-dimensional damped wave equation
 //
 // Ramses van Zon - 2015-2023
@@ -24,16 +23,20 @@ int main(int argc, char* argv[])
         std::cerr << "Error: parameter file '" << argv[1] << "' not found.\n";
         return 2;
     }
-
+    
+    //Read file to save parameters in object of Parameters class
     Parameters param = readFile(argv[1]);
+
+    //Find the dependent parameters from given parameters
     deriveParameters(param);   
    
     // Open output file
     std::ofstream fout(param.outfilename);
+
+    //Save parameters in first lines of the file
     writeParameters(param, fout);
     
     // Define and allocate arrays
-
     std::vector<double> x = initializeX(param);
     std::vector<double> rho = initializeRho(param, x);
     std::vector<double> rho_prev (rho);
@@ -41,9 +44,10 @@ int main(int argc, char* argv[])
     // Output initial wave to file
     fout << "\n#t = " << 0.0 << "\n";
     printX(fout, rho, x, param);
+
     // Take timesteps
     for (size_t s = 0; s < param.nsteps; s++) {
-
+        //Find next iteration of the wave
         std::vector<double> rho_next = timeStep(rho, rho_prev, param);
 
         // Update arrays such that t+1 becomes the new t etc.
@@ -60,5 +64,4 @@ int main(int argc, char* argv[])
     // Close file
     fout.close();
     std::cout << "Results written to '"<< param.outfilename << "'.\n";
-    
 }
